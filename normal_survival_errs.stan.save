@@ -1,0 +1,29 @@
+data {
+  int<lower=0> N_obs;
+  int<lower=0> N_cens;
+  real y_obs[N_obs];
+  real y_err[N_obs];
+  vector[N_cens] y_cens;
+}
+parameters {
+  vector<upper=0>[N_cens] latent_y_cens_raw;
+  real mu1;
+  real<lower=mu1> mu2;
+  real<lower=0> sigma1;
+  real<lower=0> sigma2;
+}
+
+transformed parameters {
+  real[N_obs] latent_y;
+  vector[N_cens] latent_y_cens;
+  latent_y_cens = y_cens + latent_y_cens_raw;
+  
+  latent_y = normal_lpdf(yobs|mu1,sigma1)+normal_lpdf(y_obs|mu2,sigma2);
+  latent_y_cens = normal_lpdf(y_cens|mu1, sigma1)+normal_lpdf(y_cens|mu2,sigma2);
+}
+model {
+  y_cens
+  y_obs ~ normal(latent_y, y_err);
+  //target += N_cens * normal_lcdf(L | mu, sigma);
+}
+
